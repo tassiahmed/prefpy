@@ -1,9 +1,9 @@
 import math
 import io
 import sys
-from mechanism import Mechanism
-from preference import Preference
-from profile import Profile
+from .mechanism import Mechanism
+from .preference import Preference
+from .profile import Profile
 
 class MechanismSTV(Mechanism):
 	"""
@@ -19,8 +19,6 @@ class MechanismSTV(Mechanism):
 	def __init__(self):
 		empty_list = []
 		# add something here...
-
-
 
 	# override getWinners eventually...
 	# def getWinners(self, profile):
@@ -49,7 +47,7 @@ class MechanismSTV(Mechanism):
 
 		if (len(rankMaps) != len(counts)):
 			print("something is wrong")
-			
+
 		totals = dict()
 		flag = 0
 		for k in range(len(rankMaps)):
@@ -76,10 +74,10 @@ class MechanismSTV(Mechanism):
 				if (flag == 1):
 					break
 
-					
-					
-		#	NEED TO EXCLUDE KEYS WHO HAVE BEEN DROPPED			
-		
+
+
+		#	NEED TO EXCLUDE KEYS WHO HAVE BEEN DROPPED
+
 		voteTotals = totals.values()
 		minVotes = sys.maxsize
 		for i in range (0, len(voteTotals)):
@@ -87,7 +85,7 @@ class MechanismSTV(Mechanism):
 			if (voteTotals[i] < minVotes):
 				minVotes = voteTotals[i]
 
-		losers = [key for key, value in totals.iteritems() if value == minVotes]
+		losers = [key for key, value in totals.items() if value == minVotes]
 		print(losers)
 		return losers
 
@@ -130,15 +128,3 @@ class MechanismSTV(Mechanism):
 
 		#returns a list of lists with full rankings of candidates in STV
 		return losers
-
-if __name__ == "__main__":
-
-	candMap = dict()
-	preferences = []
-	p = Profile(candMap, preferences)
-
-	p.importPreflibFile('ED-00018-00000004.toc')
-
-	m = MechanismSTV()
-
-	print (m.STVWinner(p))

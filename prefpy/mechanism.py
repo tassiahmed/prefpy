@@ -4,8 +4,8 @@ Author: Kevin J. Hwang
 import io
 import math
 import itertools
-from preference import Preference
-from profile import Profile
+from .preference import Preference
+from .profile import Profile
 
 class Mechanism():
     """
