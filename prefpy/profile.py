@@ -1,23 +1,24 @@
 """
 Author: Kevin J. Hwang
 """
+from __future__ import absolute_import
 import copy
-import io
+from . import io
 import itertools
 import math
 import json
-from preference import Preference
+from .preference import Preference
 
 class Profile():
     """
     The Profile class is the representation of an election Profile.
-    
+
     :ivar dict<int,str> candMap: Associates integer representations of each candidate with the name
         of the candidate.
     :ivar int numCands: The number of candidates in the election.
     :ivar list<Preference> preferences: Contains objects that represent preferences held over the
         candidates by individual voters.
-    :ivar int numVoters: The number of voters in the election.   
+    :ivar int numVoters: The number of voters in the election.
     """
 
     def __init__(self, candMap, preferences):
@@ -29,11 +30,11 @@ class Profile():
         for preference in preferences:
             self.numVoters += preference.count
 
-    def getElecType(self): 
+    def getElecType(self):
         """
         Determines whether the list of Preference objects represents complete strict orderings over
-        the candidates (soc), incomplete strict orderings (soi), complete orderings with ties (toc), 
-        or incomplete orderings with ties (toi). WARNING: elections that do not fall under the 
+        the candidates (soc), incomplete strict orderings (soi), complete orderings with ties (toc),
+        or incomplete orderings with ties (toi). WARNING: elections that do not fall under the
         above four categories may be falsely identified.
         """
 
@@ -71,7 +72,7 @@ class Profile():
 
     def getRankMaps(self):
         """
-        Returns a list of dictionaries, one for each preference, that associates the integer 
+        Returns a list of dictionaries, one for each preference, that associates the integer
         representation of each candidate with its position in the ranking, starting from 1 and
         returns a list of the number of times each preference is given.
         """
@@ -83,7 +84,7 @@ class Profile():
     def getReverseRankMaps(self):
         """
         Returns a list of dictionaries, one for each preference, that associates each position in
-        the ranking with a list of integer representations of the candidates ranked at that 
+        the ranking with a list of integer representations of the candidates ranked at that
         position and returns a list of the number of times each preference is given.
         """
 
@@ -110,7 +111,7 @@ class Profile():
         return a two-dimensional dictionary that associates integer representations of each pair of
         candidates, cand1 and cand2, with the number of times cand1 is ranked above cand2 minus the
         number of times cand2 is ranked above cand1.
-                
+
         :ivar bool normalize: If normalize is True, the function will return a normalized graph
             where each edge has been divided by the value of the largest edge.
         """
@@ -123,8 +124,8 @@ class Profile():
             wmgMap[cand1][cand2] = 0
             wmgMap[cand2][cand1] = 0
 
-        # Go through the wmgMaps and increment the value of each edge in our final graph with the 
-        # edges in each of the wmgMaps. We take into account the number of times that the vote 
+        # Go through the wmgMaps and increment the value of each edge in our final graph with the
+        # edges in each of the wmgMaps. We take into account the number of times that the vote
         # occured.
         for i in range(0, len(self.preferences)):
             preference = self.preferences[i]
@@ -135,7 +136,7 @@ class Profile():
                     wmgMap[cand2][cand1] += preferenceWmgMap[cand2][cand1]*preference.count
 
         # By default, we assume that the weighted majority graph should not be normalized. If
-        # desired, we normalize by dividing each edge by the value of the largest edge. 
+        # desired, we normalize by dividing each edge by the value of the largest edge.
         if (normalize == True):
             maxEdge = float('-inf')
             for cand in wmgMap.keys():
@@ -143,14 +144,14 @@ class Profile():
             for cand1 in wmgMap.keys():
                 for cand2 in wmgMap[cand1].keys():
                     wmgMap[cand1][cand2] = float(wmgMap[cand1][cand2])/maxEdge
-        
+
         return wmgMap
 
     #----------------------------------------------------------------------------------------------
 
     def genWmgMapFromRankMap(self, rankMap):
         """
-        Converts a single rankMap into a weighted majorty graph (wmg). We return the wmg as a 
+        Converts a single rankMap into a weighted majorty graph (wmg). We return the wmg as a
         two-dimensional dictionary that associates integer representations of each pair of candidates,
         cand1 and cand2, with the number of times cand1 is ranked above cand2 minus the number of times
         cand2 is ranked above cand1. This is called by importPreflibFile().
@@ -168,11 +169,11 @@ class Profile():
                 wmgMap[cand1] = dict()
             if cand2 not in wmgMap.keys():
                 wmgMap[cand2] = dict()
-                
-            # Check which candidate is ranked above the other. Then assign 1 or -1 as appropriate.       
+
+            # Check which candidate is ranked above the other. Then assign 1 or -1 as appropriate.
             if rankMap[cand1] < rankMap[cand2]:
                 wmgMap[cand1][cand2] = 1
-                wmgMap[cand2][cand1] = -1 
+                wmgMap[cand2][cand1] = -1
             elif rankMap[cand1] > rankMap[cand2]:
                 wmgMap[cand1][cand2] = -1
                 wmgMap[cand2][cand1] = 1
@@ -220,7 +221,7 @@ class Profile():
 
             # First, print the number of times the preference appears.
             outfileObj.write("\n" + str(self.preferences[i].count))
-            
+
             reverseRankMap = reverseRankMaps[i]
 
             # We sort the positions in increasing order and print the candidates at each position
@@ -241,14 +242,14 @@ class Profile():
                     for j in range(1, len(cands)):
                         outfileObj.write("," + str(cands[j]))
                     outfileObj.write("}")
-                    
-        outfileObj.close()            
+
+        outfileObj.close()
 
     def importPreflibFile(self, fileName):
         """
         Imports a preflib format file that contains all the information of a Profile. This function
-        will completely override all members of the current Profile object. Currently, we assume 
-        that in an election where incomplete ordering are allowed, if a voter ranks only one 
+        will completely override all members of the current Profile object. Currently, we assume
+        that in an election where incomplete ordering are allowed, if a voter ranks only one
         candidate, then the voter did not prefer any candidates over another. This may lead to some
         discrepancies when importing and exporting a .toi preflib file or a .soi preflib file.
 
@@ -276,13 +277,13 @@ class Profile():
         :ivar str fileName: The name of the output file to be exported.
         """
 
-        # Because our Profile class is not directly JSON serializable, we exporrt the underlying 
-        # dictionary. 
+        # Because our Profile class is not directly JSON serializable, we exporrt the underlying
+        # dictionary.
         data = dict()
         for key in self.__dict__.keys():
             if key != "preferences":
                 data[key] = self.__dict__[key]
-        
+
         # The Preference class is also not directly JSON serializable, so we export the underlying
         # dictionary for each Preference object.
         preferenceDicts = []
@@ -308,7 +309,7 @@ class Profile():
         infile = open(fileName)
         data = json.load(infile)
         infile.close()
-        
+
         self.numCands = int(data["numCands"])
         self.numVoters = int(data["numVoters"])
 
@@ -319,9 +320,9 @@ class Profile():
         for key in data["candMap"].keys():
             candMap[int(key)] = data["candMap"][key].encode("ascii")
         self.candMap = candMap
-        
-        # The Preference class is also not directly JSON serializable, so we exported the 
-        # underlying dictionary for each Preference object. When we import, we will create a 
+
+        # The Preference class is also not directly JSON serializable, so we exported the
+        # underlying dictionary for each Preference object. When we import, we will create a
         # Preference object from these dictionaries.
         self.preferences = []
         for preferenceMap in data["preferences"]:
