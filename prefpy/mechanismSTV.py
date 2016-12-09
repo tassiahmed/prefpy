@@ -10,12 +10,6 @@ class MechanismSTV(Mechanism):
 	Inherits from the general scoring mechanism.
 	"""
 
-	def __init__(self):
-		self.tieBreakingMethod = None
-
-	def setTieBreakingMethod(tieBreakingMethod):
-		self.tieBreakingMethod = tieBreakingMethod
-
 	def computeRoundLoser(self, profile, droppedOut):
 		"""
 		Computes who should drop out on a round
@@ -105,6 +99,7 @@ class MechanismSTV(Mechanism):
 				# Compute the rest of the election otherwise
 				if (losers[j]):
 					rankings[j].append(losers[j][0])
+					# Custom Tie Breaking would be here
 					for k in range(1, len(losers[j])):
 						rankings.append(list(rankings[j]))
 						rankings[-1].pop()
@@ -123,7 +118,7 @@ class MechanismSTV(Mechanism):
 			[[winner, 2nd winner, ... , loser], [winner, 2nd winner, ... , loser] ... ]
 		"""
 
-		#create 2-D list of rankings and losers for possibility of ties
+		# Create 2-D list of rankings and losers for possibility of ties
 		rankings = [[]]
 		losers = [[]]
 		for i in range(profile.numCands - 1):
@@ -142,11 +137,10 @@ class MechanismSTV(Mechanism):
 
 		# Now we should have a list of lists called 'rankings' which contains all rankings for different tiebreaks
 		cands = profile.candMap.keys()
-		# print("hello", cands)
 		for ranking in rankings:
 			winner = set(cands) - set(ranking)
 			ranking.append(list(winner)[0])
 			ranking.reverse()
 
-		#returns a list of lists with full rankings of candidates in STV
+		# Returns a list of lists with full rankings of candidates in STV
 		return rankings
