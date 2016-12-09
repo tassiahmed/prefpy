@@ -99,6 +99,7 @@ class MechanismSTV(Mechanism):
 				# Compute the rest of the election otherwise
 				if (losers[j]):
 					rankings[j].append(losers[j][0])
+					# Custom Tie Breaking would be here
 					for k in range(1, len(losers[j])):
 						rankings.append(list(rankings[j]))
 						rankings[-1].pop()
@@ -116,30 +117,30 @@ class MechanismSTV(Mechanism):
 		Returns a list of lists of all candidates in winning order:
 			[[winner, 2nd winner, ... , loser], [winner, 2nd winner, ... , loser] ... ]
 		"""
-		#create 2-D list of losers and dropouts for possibility of ties
+
+		# Create 2-D list of rankings and losers for possibility of ties
+		rankings = [[]]
 		losers = [[]]
-		dropouts = [[]]
 		for i in range(profile.numCands - 1):
 			j = 0
-			while j < len(losers):
-				roundLoser = self.computeRoundLoser(profile, losers[j])
-
+			while j < len(rankings):
+				roundLoser = self.computeRoundLoser(profile, rankings[j])
 				if (roundLoser):
-					dropouts[j] = roundLoser[0]
-					losers[j].append(dropouts[j][0])
-					for k in range(1, len(dropouts[j])):
-						losers.append(list(losers[j]))
-						losers[-1].pop()
-						losers[-1].append(dropouts[j][k])
-						dropouts.append([])
+					losers[j] = roundLoser[0]
+					rankings[j].append(losers[j][0])
+					for k in range(1, len(losers[j])):
+						rankings.append(list(rankings[j]))
+						rankings[-1].pop()
+						rankings[-1].append(losers[j][k])
+						losers.append([])
 				j += 1
 
-		# Now we should have a list of lists called 'losers' which contains all losers for different tiebreaks
-		cands = profile.preferences[0].getRankMap().keys()
-		for loser in losers:
-			winner = set(cands) - set(loser)
-			loser.append(list(winner)[0])
-			loser.reverse()
+		# Now we should have a list of lists called 'rankings' which contains all rankings for different tiebreaks
+		cands = profile.candMap.keys()
+		for ranking in rankings:
+			winner = set(cands) - set(ranking)
+			ranking.append(list(winner)[0])
+			ranking.reverse()
 
-		#returns a list of lists with full rankings of candidates in STV
-		return losers
+		# Returns a list of lists with full rankings of candidates in STV
+		return rankings
