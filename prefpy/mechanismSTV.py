@@ -1,5 +1,3 @@
-import math
-import io
 import sys
 from .mechanism import Mechanism
 from .preference import Preference
@@ -20,6 +18,7 @@ class MechanismSTV(Mechanism):
 		droppedOut - list of candidates who have already dropped out
 		"""
 
+		# Return if all the candidates have already dropped out of the election
 		if (len(droppedOut) == len(profile.candMap) - 1):
 			return
 
@@ -28,9 +27,11 @@ class MechanismSTV(Mechanism):
 			rankMaps.append(preference.getReverseRankMap())
 			counts.append(preference.count)
 
+		# Make sure the lists are same size
 		if (len(rankMaps) != len(counts)):
 			print("Something is wrong")
 
+		# Compute vote totals for each candidate that hasn't dropped out
 		totals = dict()
 		for k in range(len(rankMaps)):
 			flag = False
@@ -48,19 +49,69 @@ class MechanismSTV(Mechanism):
 				if flag:
 					break
 
-		voteTotals = totals.values()
+		voteTotals = list(totals.values())
+		allVotes = 0
 		minVotes = sys.maxsize
+		maxVotes, maxIndex, majKey = -1, -1, -1
 
-		for vote in voteTotals:
-			if (vote < minVotes):
-				minVotes = vote
+		# Compute largest # of a votes received by any candidate
+		for i in range (len(voteTotals)):
+			allVotes += voteTotals[i]
+			if (voteTotals[i] > maxVotes):
+				maxVotes = voteTotals[i]
+				maxIndex = i
+			if (voteTotals[i] < minVotes):
+				minVotes = voteTotals[i]
 
+		# Find the candidate with more than majority of votes
+		for key, value in totals.items():
+			if value == maxVotes:
+				if (maxVotes > (allVotes/2)):
+					majKey = key
+
+		# Return a list candidates whose votes are equal to lowest # of votes
 		losers = [key for key, value in totals.items() if value == minVotes]
-		return losers
+		return (losers, majKey)
+
+	def getSTVWinners(self, profile):
+		"""
+		Computes all unique winners for the election
+			(considers all possible tie breaks)
+
+		profile - voting profile given
+		"""
+		winners = set()
+		rankings = [[]]
+		losers = [[]]
+
+		# Calculate eah round loser
+		for i in range(profile.numCands - 1):
+			j = 0
+			while j < len(rankings):
+				majKey = -1
+				# Compute a winner of election
+				losers[j], majKey = self.computeRoundLoser(profile, rankings[j])
+				# Add it to the set of winners
+				if majKey != -1:
+					winners.add(majKey)
+					break
+
+				# Compute the rest of the election otherwise
+				if (losers[j]):
+					rankings[j].append(losers[j][0])
+					for k in range(1, len(losers[j])):
+						rankings.append(list(rankings[j]))
+						rankings[-1].pop()
+						rankings[-1].append(losers[j][k])
+						losers.append([])
+				j += 1
+
+		# Return all unique winners
+		return list(winners)
 
 	def getSTVRankings(self, profile):
 		"""
-		Computes the winners (and losers) for STV voting
+		Computes all poaasible full rankings for STV voting
 
 		Returns a list of lists of all candidates in winning order:
 			[[winner, 2nd winner, ... , loser], [winner, 2nd winner, ... , loser] ... ]
@@ -68,12 +119,13 @@ class MechanismSTV(Mechanism):
 		#create 2-D list of losers and dropouts for possibility of ties
 		losers = [[]]
 		dropouts = [[]]
-
 		for i in range(profile.numCands - 1):
 			j = 0
 			while j < len(losers):
-				dropouts[j] = self.computeRoundLoser(profile, losers[j])
-				if (dropouts[j]):
+				roundLoser = self.computeRoundLoser(profile, losers[j])
+
+				if (roundLoser):
+					dropouts[j] = roundLoser[0]
 					losers[j].append(dropouts[j][0])
 					for k in range(1, len(dropouts[j])):
 						losers.append(list(losers[j]))
